@@ -121,85 +121,6 @@ const char* txtPassword = "12345678";
 
 
 
-
-#define PIN_LED_BOARD  5
-#define PIN_ACTOR      5   // the digital output we want to control
-#define PIN_LED_GREEN  27
-#define PIN_LED_RED    26
-
-#define LED_YELLOW  3
-#define LED_GREEN   2
-#define LED_RED     1
-
-#define LED_ON    1
-#define LED_OFF   0
-
-#define ACTOR_ON    1
-#define ACTOR_OFF   0
-
-
-
-
-// Switch Actor Output
-// ActorState must be ACTOR_OFF or ACTOR_ON
-void SwitchActor(byte ActorState)
-{
-    if (ActorState == ACTOR_OFF)
-    {
-      digitalWrite(PIN_ACTOR, LOW);
-    }
-    else
-    {      
-      digitalWrite(PIN_ACTOR, HIGH);
-    }
-}
-
-
-// Switch LED on the board
-// LEDState must be LED_OFF or LED_ON
-void SwitchBoardLED(byte LEDState)
-{
-    if (LEDState == LED_OFF)
-    {
-      digitalWrite(PIN_LED_BOARD, LOW);
-    }
-    else
-    {      
-      digitalWrite(PIN_LED_BOARD, HIGH);
-    }
-}
-
-
-// Switch LEDs of RGBLED
-// LEDColor must be LED_GREEN, LED_RED, LED_YELLOW or LED_OFF
-void SwitchRGBLED(byte LEDColor)
-{
-    switch(LEDColor)
-    {     
-      case LED_GREEN:
-         digitalWrite(PIN_LED_GREEN, HIGH);
-         digitalWrite(PIN_LED_RED, LOW);
-      break;
-      
-      case LED_RED:
-         digitalWrite(PIN_LED_GREEN, LOW);
-         digitalWrite(PIN_LED_RED, HIGH);
-      break;
-      
-      case LED_YELLOW:
-         digitalWrite(PIN_LED_GREEN, HIGH);
-         digitalWrite(PIN_LED_RED, HIGH);
-      break;
-      
-      case LED_OFF:
-         digitalWrite(PIN_LED_GREEN, LOW);
-         digitalWrite(PIN_LED_RED, LOW);
-      break;     
-    }
-}
-
-
-
 // this section handles configuration values which can be configured via webpage form in a webbrowser
 
 // 8 configuration values max
@@ -286,19 +207,7 @@ int DecodeGETParameterAndSetConfigValues(String GETParameter)
 
 void setup() 
 {
-  
-  pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_LED_GREEN, OUTPUT);
-  pinMode(PIN_LED_BOARD, OUTPUT);
-  pinMode(PIN_ACTOR, OUTPUT);
 
-  pinMode(0, INPUT);
-
-  
-
-  SwitchRGBLED(LED_YELLOW); 
-  SwitchActor(ACTOR_OFF);
-  
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
   Serial.println("Hello ESP32!"); 
@@ -306,16 +215,18 @@ void setup()
   boolean success = true;
 
  
-  // connect to WiFi network
+  // connect to WiFi network; up to 6 tries, 10 sec per try
   // see https://www.arduino.cc/en/Reference/WiFiBegin
+  
+  int WiFiConnectTries = 0;
+  while ((WiFi.status() != WL_CONNECTED) && (WiFiConnectTries < 7))
+  {
   
   WiFi.begin(txtSSID, txtPassword);
   if (!WiFi.config(local_IP, gateway, subnet)) {
   Serial.println("STA Failed to configure");
   }
-  
-  // we wait until connection is established or 10 seconds are gone
-  
+    
   int WiFiConnectTimeOut = 0;
   while ((WiFi.status() != WL_CONNECTED) && (WiFiConnectTimeOut < 10))
   {
@@ -323,26 +234,24 @@ void setup()
     WiFiConnectTimeOut++;
   }
 
+  WiFiConnectTries++;
+
+  }
+  
+  
   // not connected
   if (WiFi.status() != WL_CONNECTED)
   {
     success = false;
   }
 
-  if (success == true)
-  {
-    SwitchRGBLED(LED_GREEN); 
-  }
-  else
-  {
-    SwitchRGBLED(LED_RED);  
-  }   
-
   // print out local address of ESP32 in LAN
   Serial.println(WiFi.localIP());
-
-  // switch LED off
-  SwitchActor(ACTOR_OFF);
+  
+  Serial.println(WiFi.localIP());
+  Serial.println("Connection in");
+  Serial.println(WiFiConnectTimeOut);
+  Serial.println("sec.");
 
   // initialize config values and set first 3 names of values to LED1...LED3
   InitializeConfigValues();
@@ -410,5 +319,36 @@ void loop() {
      
   }
 
-  delay(50);
+  delay(200);
+  
+  WiFiConnectedQuery=+200;
+  
+  
+  /*
+  zu implementieren: Timer, dass nur alle 5 sekunden abgefragt wird, ob WiFi verbunden ist
+  */
+  
+  
+  if(WiFiConnectedQuery==10000)
+  {
+  
+  if(WiFi.status() != WL_CONNECTED)
+  {
+  WiFi.begin(txtSSID, txtPassword);
+  if (!WiFi.config(local_IP, gateway, subnet)) 
+  {
+  Serial.println("STA Failed to configure");
+  }
+  }
+  
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    delay(1000);
+    WiFiConnectTimeOut++;
+  }
+  
+  Webserver_Start();
+  
+  WiFiConnectedQuery=0;
+  }
 }
