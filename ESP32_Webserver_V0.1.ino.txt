@@ -1,4 +1,5 @@
 
+
 #include <WiFi.h>
 
 // +++++++++++++++++++ Start of Webserver Library +++++++++++++++++++
@@ -308,19 +309,21 @@ void setup()
  
   // connect to WiFi network
   // see https://www.arduino.cc/en/Reference/WiFiBegin
+  int = 0;
+  while (WiFi.status != WL_CONNECTED && timer < 6) {
+    WiFi.begin(txtSSID, txtPassword);
+    if (!WiFi.config(local_IP, gateway, subnet)) {
+    Serial.println("STA Failed to configure");
+    }
   
-  WiFi.begin(txtSSID, txtPassword);
-  if (!WiFi.config(local_IP, gateway, subnet)) {
-  Serial.println("STA Failed to configure");
-  }
-  
-  // we wait until connection is established or 10 seconds are gone
-  
-  int WiFiConnectTimeOut = 0;
-  while ((WiFi.status() != WL_CONNECTED) && (WiFiConnectTimeOut < 10))
-  {
-    delay(1000);
-    WiFiConnectTimeOut++;
+    // we wait until connection is established or 10 seconds are gone
+   
+    int WiFiConnectTimeOut = 0;
+    while ((WiFi.status() != WL_CONNECTED) && (WiFiConnectTimeOut < 10))
+    {
+      delay(1000);
+      WiFiConnectTimeOut++;
+    }
   }
 
   // not connected
@@ -329,17 +332,11 @@ void setup()
     success = false;
   }
 
-  if (success == true)
-  {
-    SwitchRGBLED(LED_GREEN); 
-  }
-  else
-  {
-    SwitchRGBLED(LED_RED);  
-  }   
-
   // print out local address of ESP32 in LAN
   Serial.println(WiFi.localIP());
+  Serial.println("Connection in");
+  Serial.println(WiFiConnectTimeOut);
+  Serial.println("sec.");
 
   // switch LED off
   SwitchActor(ACTOR_OFF);
@@ -394,6 +391,7 @@ void loop() {
 
   String GETParameter = Webserver_GetRequestGETParameter();   // look for client request
   int countValues = 0;
+  int timer;
   if (GETParameter.length() > 0)        // we got a request, client connection stays open
   {
     if (GETParameter.length() > 1)      // request contains some GET parameter
@@ -409,6 +407,11 @@ void loop() {
     Webserver_SendHTMLPage(HTMLPageWithConfigForm);    // send out the webpage to client = webbrowser and close client connection
      
   }
-
-  delay(50);
+  if (timer>50) {
+    timer = 0;
+    
+  } else {
+    timer++;
+  }
+  delay(200);
 }
