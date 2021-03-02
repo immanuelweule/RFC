@@ -1,5 +1,6 @@
 
 
+
 #include <WiFi.h>
 
 // +++++++++++++++++++ Start of Webserver Library +++++++++++++++++++
@@ -284,6 +285,25 @@ int DecodeGETParameterAndSetConfigValues(String GETParameter)
    return count;  // number of values found in GET parameter
 }
 
+void ConnectToWiFi() {
+  timer = 0
+  while (WiFi.status != WL_CONNECTED && timer < 6) {
+    WiFi.begin(txtSSID, txtPassword);
+    if (!WiFi.config(local_IP, gateway, subnet)) {
+    Serial.println("STA Failed to configure");
+    }
+  
+    // we wait until connection is established or 10 seconds are gone
+   
+    int WiFiConnectTimeOut = 0;
+    while ((WiFi.status() != WL_CONNECTED) && (WiFiConnectTimeOut < 10))
+    {
+      delay(1000);
+      WiFiConnectTimeOut++;
+    }
+    timer++;
+  }
+}
 
 void setup() 
 {
@@ -309,22 +329,7 @@ void setup()
  
   // connect to WiFi network
   // see https://www.arduino.cc/en/Reference/WiFiBegin
-  int = 0;
-  while (WiFi.status != WL_CONNECTED && timer < 6) {
-    WiFi.begin(txtSSID, txtPassword);
-    if (!WiFi.config(local_IP, gateway, subnet)) {
-    Serial.println("STA Failed to configure");
-    }
-  
-    // we wait until connection is established or 10 seconds are gone
-   
-    int WiFiConnectTimeOut = 0;
-    while ((WiFi.status() != WL_CONNECTED) && (WiFiConnectTimeOut < 10))
-    {
-      delay(1000);
-      WiFiConnectTimeOut++;
-    }
-  }
+  ConnectToWiFi();
 
   // not connected
   if (WiFi.status() != WL_CONNECTED)
@@ -409,7 +414,9 @@ void loop() {
   }
   if (timer>50) {
     timer = 0;
-    
+    if (WiFi.status != WL_CONNECTED) {
+    ConnectToWiFi();
+    }
   } else {
     timer++;
   }
