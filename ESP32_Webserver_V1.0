@@ -1,20 +1,20 @@
-
 #include <WiFi.h>
 
 // +++++++++++++++++++ Start of Webserver Library +++++++++++++++++++
 
 WiFiClient myclient;
 WiFiServer server(80);
-// Set your Static IP address
-IPAddress local_IP(192, 168, 1, 184);
-// Set your Gateway IP address
-IPAddress gateway(192, 168, 1, 1);
+IPAddress local_IP(192, 168, 1, 184); // Set your Static IP address
+IPAddress gateway(192, 168, 1, 1);    // Set your Gateway IP address
 IPAddress subnet(255, 255, 0, 0);
+
+
 
 void Webserver_Start()
 {
   server.begin();     // Start TCP/IP-Server on ESP32
 }
+
 
 
 //  Call this function regularly to look for client requests
@@ -23,6 +23,7 @@ void Webserver_Start()
 //  returns GET Parameter: everything after the "/?" if ADDRESS/?xxxx was entered by the user in the webbrowser
 //  returns "-" if ADDRESS but no GET Parameter was entered by the user in the webbrowser
 //  remark: client connection stays open after return
+
 String Webserver_GetRequestGETParameter()
 {
   String GETParameter = "";
@@ -65,17 +66,11 @@ String Webserver_GetRequestGETParameter()
         // we see a "GET /?" in the HTTP data of the client request
         // user entered ADDRESS/?xxxx in webbrowser, xxxx = GET Parameter
         {
-          
           GETParameter = currentLine.substring(currentLine.indexOf('?') + 1, currentLine.indexOf(' ', 6));    // extract everything behind the ? and before a space
-                    
         }
-        
       }
-      
-    }
-    
+    }    
   }
-
   return GETParameter;
 }
 
@@ -83,6 +78,7 @@ String Webserver_GetRequestGETParameter()
 
 // Send HTML page to client, as HTTP response
 // client connection must be open (call Webserver_GetRequestGETParameter() first)
+
 void Webserver_SendHTMLPage(String HTMLPage)
 {
    String httpResponse = "";
@@ -104,9 +100,7 @@ void Webserver_SendHTMLPage(String HTMLPage)
    myclient.stop();
     
    Serial.println("Client Disconnected.");
-   
 };
-
 
 
 
@@ -114,89 +108,9 @@ void Webserver_SendHTMLPage(String HTMLPage)
 
 
 
-
 // SSID and Password of your Wifi network
 const char* txtSSID = "Test";
 const char* txtPassword = "12345678";
-
-
-
-
-#define PIN_LED_BOARD  5
-#define PIN_ACTOR      5   // the digital output we want to control
-#define PIN_LED_GREEN  27
-#define PIN_LED_RED    26
-
-#define LED_YELLOW  3
-#define LED_GREEN   2
-#define LED_RED     1
-
-#define LED_ON    1
-#define LED_OFF   0
-
-#define ACTOR_ON    1
-#define ACTOR_OFF   0
-
-
-
-
-// Switch Actor Output
-// ActorState must be ACTOR_OFF or ACTOR_ON
-void SwitchActor(byte ActorState)
-{
-    if (ActorState == ACTOR_OFF)
-    {
-      digitalWrite(PIN_ACTOR, LOW);
-    }
-    else
-    {      
-      digitalWrite(PIN_ACTOR, HIGH);
-    }
-}
-
-
-// Switch LED on the board
-// LEDState must be LED_OFF or LED_ON
-void SwitchBoardLED(byte LEDState)
-{
-    if (LEDState == LED_OFF)
-    {
-      digitalWrite(PIN_LED_BOARD, LOW);
-    }
-    else
-    {      
-      digitalWrite(PIN_LED_BOARD, HIGH);
-    }
-}
-
-
-// Switch LEDs of RGBLED
-// LEDColor must be LED_GREEN, LED_RED, LED_YELLOW or LED_OFF
-void SwitchRGBLED(byte LEDColor)
-{
-    switch(LEDColor)
-    {     
-      case LED_GREEN:
-         digitalWrite(PIN_LED_GREEN, HIGH);
-         digitalWrite(PIN_LED_RED, LOW);
-      break;
-      
-      case LED_RED:
-         digitalWrite(PIN_LED_GREEN, LOW);
-         digitalWrite(PIN_LED_RED, HIGH);
-      break;
-      
-      case LED_YELLOW:
-         digitalWrite(PIN_LED_GREEN, HIGH);
-         digitalWrite(PIN_LED_RED, HIGH);
-      break;
-      
-      case LED_OFF:
-         digitalWrite(PIN_LED_GREEN, LOW);
-         digitalWrite(PIN_LED_RED, LOW);
-      break;     
-    }
-}
 
 
 
@@ -208,7 +122,9 @@ String ConfigValue[8];    // the value itself (String)
 int    ConfigStatus[8];   // status of the value    0 = not set    1 = valid   -1 = not valid
 
 
+
 // Initalize the values 
+
 void InitializeConfigValues()
 {
   for (int count = 0; count < 8; count++)
@@ -220,8 +136,10 @@ void InitializeConfigValues()
 }
 
 
+
 // Build a HTML page with a form which shows textboxes to enter the values
 // returns the HTML code of the page
+
 String EncodeFormHTMLFromConfigValues(String TitleOfForm, int CountOfConfigValues)
 {
    // Head of the HTML page
@@ -253,8 +171,10 @@ String EncodeFormHTMLFromConfigValues(String TitleOfForm, int CountOfConfigValue
 }
 
 
+
 // Decodes a GET parameter (expression after ? in URI (URI = expression entered in address field of webbrowser)), like "Country=Germany&City=Aachen"
 // and set the ConfigValues
+
 int DecodeGETParameterAndSetConfigValues(String GETParameter)
 {
    
@@ -283,6 +203,10 @@ int DecodeGETParameterAndSetConfigValues(String GETParameter)
    return count;  // number of values found in GET parameter
 }
 
+
+
+
+
 int ConnectToWiFi() {
   timer = 0
   count = 0
@@ -306,28 +230,18 @@ int ConnectToWiFi() {
   return count;
 }
 
+
+
+
+
 void setup() 
 {
-  
-  pinMode(PIN_LED_RED, OUTPUT);
-  pinMode(PIN_LED_GREEN, OUTPUT);
-  pinMode(PIN_LED_BOARD, OUTPUT);
-  pinMode(PIN_ACTOR, OUTPUT);
-
-  pinMode(0, INPUT);
-
-  
-
-  SwitchRGBLED(LED_YELLOW); 
-  SwitchActor(ACTOR_OFF);
-  
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
   Serial.println("Hello ESP32!"); 
 
   boolean success = true;
 
- 
   // connect to WiFi network
   // see https://www.arduino.cc/en/Reference/WiFiBegin
   counter = ConnectToWiFi();
@@ -343,10 +257,7 @@ void setup()
   Serial.println("Connection in");
   Serial.println(counter);
   Serial.println("sec.");
-
-  // switch LED off
-  SwitchActor(ACTOR_OFF);
-
+  
   // initialize config values and set first 3 names of values to LED1...LED3
   InitializeConfigValues();
   ConfigName[0] = "LED1";
@@ -355,7 +266,6 @@ void setup()
 
   // start the webserver to listen for request of clients in WLAN
   Webserver_Start();
-
 }
 
 // check the ConfigValues and set ConfigStatus
@@ -388,8 +298,9 @@ void ProcessAndValidateConfigValues(int countValues)
   {
     SwitchActor(ACTOR_ON);
   }
-  
 }
+
+
 
 
 
@@ -398,8 +309,10 @@ void loop() {
   String GETParameter = Webserver_GetRequestGETParameter();   // look for client request
   int countValues = 0;
   int timer;
+  
   if (GETParameter.length() > 0)        // we got a request, client connection stays open
   {
+  
     if (GETParameter.length() > 1)      // request contains some GET parameter
     {
       int countValues = DecodeGETParameterAndSetConfigValues(GETParameter);     // decode the GET parameter and set ConfigValues
@@ -411,15 +324,17 @@ void loop() {
     String HTMLPageWithConfigForm = EncodeFormHTMLFromConfigValues("ESP32 Webserver Demo", countValues);   // build a new webpage with form and new ConfigValues entered in textboxes
    
     Webserver_SendHTMLPage(HTMLPageWithConfigForm);    // send out the webpage to client = webbrowser and close client connection
-     
   }
+  
   if (timer>50) {
     timer = 0;
+    
     if (WiFi.status != WL_CONNECTED) {
     ConnectToWiFi();
     }
   } else {
     timer++;
   }
+  
   delay(200);
 }
