@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>ESP32 Comunication</h2>
+
+<form action="/action_page.php" target="_blank" method="get">
+  <label for="commands">Command line:</label><br>
+  <input type="text" id="commands" name="commands" value="sample"><br><br>
+  <input type="checkbox" id="choice1" name="gender" value="female">
+  <label for="choice1">Repeat</label><br><br>
+  <input type="submit" value="Submit">
+</form> 
+
+<p>If you click the "Submit" button, the form-data will be sent to the satellite to take actions.<br>
+Daten in "Command line" werden übermittelt als <b>/action_page.php?commands=sample</b></p>
+
+</body>
+</html>
