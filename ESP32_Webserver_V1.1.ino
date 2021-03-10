@@ -18,8 +18,7 @@ IPAddress subnet(255, 255, 0, 0);
 //int status = WL_IDLE_STATUS;
 
 
-void Webserver_Start()
-{
+void Webserver_Start() {
   server.begin();     // Start TCP/IP-Server on ESP32
 }
 
@@ -32,8 +31,7 @@ void Webserver_Start()
 //  returns "-" if ADDRESS but no GET Parameter was entered by the user in the webbrowser
 //  remark: client connection stays open after return
 
-String Webserver_GetRequestGETParameter()
-{
+String Webserver_GetRequestGETParameter() {
   String GETParameter = "";
   
   myclient = server.available();   // listen for incoming clients
@@ -70,10 +68,9 @@ String Webserver_GetRequestGETParameter()
           currentLine += c;      // add it to the end of the currentLine
         }
 
-        if (c=='\r' && currentLine.startsWith("GET /?")) 
+        if (c=='\r' && currentLine.startsWith("GET /?")) {
         // we see a "GET /?" in the HTTP data of the client request
         // user entered ADDRESS/?xxxx in webbrowser, xxxx = GET Parameter
-        {
           GETParameter = currentLine.substring(currentLine.indexOf('?') + 1, currentLine.indexOf(' ', 6));    // extract everything behind the ? and before a space
         }
       }
@@ -87,8 +84,7 @@ String Webserver_GetRequestGETParameter()
 // Send HTML page to client, as HTTP response
 // client connection must be open (call Webserver_GetRequestGETParameter() first)
 
-void Webserver_SendHTMLPage(String HTMLPage)
-{
+void Webserver_SendHTMLPage(String HTMLPage) {
    String httpResponse = "";
 
    // begin with HTTP response header
@@ -127,8 +123,7 @@ int    ConfigStatus[8];   // status of the value    0 = not set    1 = valid   -
 
 // Initalize the values 
 
-void InitializeConfigValues()
-{
+void InitializeConfigValues() {
   for (int count = 0; count < 8; count++)
   {
     ConfigName[count] = "";
@@ -142,14 +137,12 @@ void InitializeConfigValues()
 // Build a HTML page with a form which shows textboxes to enter the values
 // returns the HTML code of the page
 
-String EncodeFormHTMLFromConfigValues(String TitleOfForm, int CountOfConfigValues)
-{
+String EncodeFormHTMLFromConfigValues(String TitleOfForm, int CountOfConfigValues) {
    // Head of the HTML page
    String HTMLPage = "<!DOCTYPE html><html><body><h2>" + TitleOfForm + "</h2><form><table>";
 
    // for each configuration value
-   for (int c = 0; c < CountOfConfigValues; c++)
-   {
+   for (int c = 0; c < CountOfConfigValues; c++) {
     // set background color by the status of the configuration value
     String StyleHTML = "";
     if (ConfigStatus[c] == 0) { StyleHTML = " Style =\"background-color: #FFE4B5;\" " ;};   // yellow
@@ -177,15 +170,13 @@ String EncodeFormHTMLFromConfigValues(String TitleOfForm, int CountOfConfigValue
 // Decodes a GET parameter (expression after ? in URI (URI = expression entered in address field of webbrowser)), like "Country=Germany&City=Aachen"
 // and set the ConfigValues
 
-int DecodeGETParameterAndSetConfigValues(String GETParameter)
-{
+int DecodeGETParameterAndSetConfigValues(String GETParameter) {
    
    int posFirstCharToSearch = 1;
    int count = 0;
    
    // while a "&" is in the expression, after a start position to search
-   while (GETParameter.indexOf('&', posFirstCharToSearch) > -1)
-   {
+   while (GETParameter.indexOf('&', posFirstCharToSearch) > -1) {
      int posOfSeparatorChar = GETParameter.indexOf('&', posFirstCharToSearch);  // position of & after start position
      int posOfValueChar = GETParameter.indexOf('=', posFirstCharToSearch);      // position of = after start position
   
@@ -228,8 +219,7 @@ void ConnectToWiFi() {
   }
 
   // not connected
-  if (WiFi.status() != WL_CONNECTED)
-  {
+  if (WiFi.status() != WL_CONNECTED) {
     Serial.println("Connection failed");
     success = false;
   } else {
@@ -246,8 +236,7 @@ void ConnectToWiFi() {
 
 
 
-void setup() 
-{
+void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
   Serial.println("ESP32 awake"); 
@@ -269,20 +258,16 @@ void setup()
 
 // check the ConfigValues and set ConfigStatus
 // process the ConfigValues to switch something
-void ProcessAndValidateConfigValues(int countValues)
-{
+void ProcessAndValidateConfigValues(int countValues) {
   if (countValues > 8) {countValues = 8;};
 
   // for each ConfigValue
-  for (int cn = 0; cn < countValues; cn++) 
-  {
+  for (int cn = 0; cn < countValues; cn++) {
     // in our application the values must be "00" or "FF" (as text string)
-    if ((ConfigValue[cn].equals("00")) || (ConfigValue[cn].equals("FF")))
-    {
+    if ((ConfigValue[cn].equals("00")) || (ConfigValue[cn].equals("FF"))) {
       ConfigStatus[cn] = 1;    // Value is valid
     }
-    else
-    {
+    else {
       ConfigStatus[cn] = -1;   // Value is not valid
     }
   }
@@ -298,11 +283,9 @@ void loop() {
   int countValues = 0;
   int timer;
   
-  if (GETParameter.length() > 0)        // we got a request, client connection stays open
-  {
+  if (GETParameter.length() > 0) {     // we got a request, client connection stays open
   
-    if (GETParameter.length() > 1)      // request contains some GET parameter
-    {
+    if (GETParameter.length() > 1) {    // request contains some GET parameter
       int countValues = DecodeGETParameterAndSetConfigValues(GETParameter);     // decode the GET parameter and set ConfigValues
       ProcessAndValidateConfigValues(countValues);                              // check and process ConfigValues
     } else {
