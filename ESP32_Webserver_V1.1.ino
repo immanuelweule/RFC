@@ -11,11 +11,11 @@ WiFiServer server(80);
 const char* txtSSID = "Test";
 const char* txtPassword = "12345678";
 
-IPAddress local_IP(192, 168, 1, 184); // Set your Static IP address
-IPAddress gateway(192, 168, 1, 1); // Set your Gateway IP address
+IPAddress local_IP (192, 168, 164, 107); // Set your Static IP address
+IPAddress gateway (192, 168, 1, 9); // Set your Gateway IP address
 IPAddress dns (8, 8, 8, 8);
-IPAddress subnet(255, 255, 0, 0);
-//int status = WL_IDLE_STATUS;
+IPAddress subnet (255, 255, 255, 0);
+int status = WL_IDLE_STATUS;
 
 
 void Webserver_Start() {
@@ -204,23 +204,23 @@ void ConnectToWiFi() {
   boolean success = true;
   int counter = 0;
   
-  Serial.print("Attempting to connect to SSID: ");
+  Serial.print("Attempting to connect to Wifi: ");
   Serial.print(txtSSID);
+  WiFi.disconnect();
   WiFi.begin(txtSSID, txtPassword);
-  //if (!WiFi.config(local_IP, gateway, subnet)) {
-  //Serial.println("STA Failed to configure");
-  //}
+  //WiFi.config(local_IP, dns, gateway); (doesnt work, probably ip out of range of router)
+
   
   // we wait until connection is established or 10 seconds are gone
   while (WiFi.status() != WL_CONNECTED && counter < 10) {
     delay(1000);
-    Serial.println(".");
+    Serial.print(".");
     counter++;
   }
-
+  Serial.println(".");
   // not connected
   if (WiFi.status() != WL_CONNECTED) {
-    Serial.println("Connection failed");
+    Serial.print("Connection failed");
     success = false;
   } else {
     Serial.print("IP Address: ");
@@ -242,9 +242,7 @@ void setup() {
   Serial.println("ESP32 awake"); 
   
   // connect to WiFi network
-  WiFi.config(local_IP, dns, gateway, subnet);
   ConnectToWiFi();
-
   
   // initialize config values and set first 3 names of values to LED1...LED3
   InitializeConfigValues();
@@ -273,15 +271,11 @@ void ProcessAndValidateConfigValues(int countValues) {
   }
 }
 
-
-
-
-
+int timer = 0;
 void loop() {
 
   String GETParameter = Webserver_GetRequestGETParameter();   // look for client request
   int countValues = 0;
-  int timer;
   
   if (GETParameter.length() > 0) {     // we got a request, client connection stays open
   
@@ -296,12 +290,12 @@ void loop() {
    
     Webserver_SendHTMLPage(HTMLPageWithConfigForm);    // send out the webpage to client = webbrowser and close client connection
   }
-  
+
   if (timer>50) {
-    timer = 0;
-    
+  timer = 0;
     if (WiFi.status() != WL_CONNECTED) {
-    ConnectToWiFi();
+      Serial.println("WiFi not connected. Try to reconnect");
+      ConnectToWiFi();
     }
   } else {
     timer++;
