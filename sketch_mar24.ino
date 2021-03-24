@@ -306,8 +306,9 @@ void loop() {
   } else {
     timer++;
   }
-  Serial.println("Hier sollte ConfigValue stehen");
+  Serial.print("ConfigValue[0]: ");
   Serial.println(ConfigValue[0]);
+  Serial.print("GETParameter: ");
   Serial.println(GETParameter);
   
   delay(2000);
