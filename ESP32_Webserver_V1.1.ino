@@ -11,8 +11,8 @@ WiFiServer server(80);
 
 
 // SSID and Password of your Wifi network
-const char* txtSSID = "Kewwin_02";
-const char* txtPassword = "2214934027604276";
+const char* txtSSID = "Test";
+const char* txtPassword = "12345678";
 
 IPAddress local_IP (192, 168, 1, 150); // Set your Static IP address
 IPAddress gateway (192, 168, 1, 9); // Set your Gateway IP address
