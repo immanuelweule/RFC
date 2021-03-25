@@ -327,19 +327,12 @@ void loop() {
     } else {
       int countValues = 1;
     }
-
+    // function returns status of send data in an array
+    ConfigStatus[] = SerialPeriphalInterface(ConfigValue);
     String HTMLPageWithConfigForm = EncodeFormHTMLFromConfigValues("ESP32 Webserver Demo", countValues);   // build a new webpage with form and new ConfigValues entered in textboxes
    
     Webserver_SendHTMLPage(HTMLPageWithConfigForm);    // send out the webpage to client = webbrowser and close client connection
   }
-
-
-  // function has to save returned data in a variable (has to be implemented)
-  if (GETParameter.length() > 1){
-    SerialPeriphalInterface(ConfigValue);    
-  }
-
-  // receivedData have to be processed
 
   if (timer>50) {
   timer = 0;
