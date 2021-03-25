@@ -1,5 +1,8 @@
 #include <WiFi.h>
 #include <SPI.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 // +++++++++++++++++++ Start of Webserver Library +++++++++++++++++++
 
@@ -8,14 +11,23 @@ WiFiServer server(80);
 
 
 // SSID and Password of your Wifi network
-const char* txtSSID = "Test";
-const char* txtPassword = "12345678";
+const char* txtSSID = "Kewwin_02";
+const char* txtPassword = "2214934027604276";
 
-IPAddress local_IP (192, 168, 1, 100); // Set your Static IP address
+IPAddress local_IP (192, 168, 1, 150); // Set your Static IP address
 IPAddress gateway (192, 168, 1, 9); // Set your Gateway IP address
 IPAddress dns (8, 8, 8, 8);
 IPAddress subnet (255, 255, 255, 0);
 int status = WL_IDLE_STATUS;
+
+
+#define SCLK 17
+#define MOSI 18
+#define MISO 5
+#define SS 19
+
+SPISettings SPISettings(1000000, MSBFIRST, SPI_MODE0);
+
 
 
 void Webserver_Start() {
@@ -36,6 +48,7 @@ String Webserver_GetRequestGETParameter() {
   
   myclient = server.available();   // listen for incoming clients
 
+  //Serial.print(".");
   if (myclient) {                            // if you get a client,
     Serial.println("New Client.");           // print a message out the serial port
     String currentLine = "";                 // make a String to hold incoming data from the client
@@ -53,7 +66,7 @@ String Webserver_GetRequestGETParameter() {
             if (GETParameter == "") {
               GETParameter = "-";
               Serial.print("GET PARAMETER WIRD - GESETZT");
-              };    // if no "GET /action_page.php?" was found so far in the request bytes, return "-"
+              };    // if no "GET /?" was found so far in the request bytes, return "-"
             
             // break out of the while loop:
             break;
@@ -67,10 +80,12 @@ String Webserver_GetRequestGETParameter() {
           //Serial.println(currentLine);
         }
 
-        if (c=='\r' && currentLine.startsWith("GET /action_page.php?")) {
-        // we see a "GET /action_page.php?" in the HTTP data of the client request
-        // user entered ADDRESS/action_page.php?xxxx in webbrowser, xxxx = GET Parameter
+        if (c=='\r' && currentLine.startsWith("GET /?")) {
+        // we see a "GET /?" in the HTTP data of the client request
+        // user entered ADDRESS/?xxxx in webbrowser, xxxx = GET Parameter
           GETParameter = currentLine.substring(currentLine.indexOf('?') + 1, currentLine.indexOf(' ', 6));    // extract everything behind the ? and before a space
+          Serial.println("GET PARAMETER WIRD GEBAUT");
+          Serial.println(GETParameter);
         }
       }
     }    
@@ -107,7 +122,7 @@ void Webserver_SendHTMLPage(String HTMLPage) {
 
 
 
-// ______________________ End of Webserver library ________________________
+// +++++++++++++++++++ End of Webserver library +++++++++++++++++++++
 
 
 
@@ -138,20 +153,9 @@ void InitializeConfigValues() {
 
 String EncodeFormHTMLFromConfigValues(String TitleOfForm, int CountOfConfigValues) {
    // Head of the HTML page
-   String HTMLPage = "<!DOCTYPE html><html><body><h2>" + TitleOfForm + "</h2><form action=\"/action_page.php\" target=\"_blank\" method=\"get\">";
+   String HTMLPage = "<!DOCTYPE html><html><body><h2>" + TitleOfForm + "</h2><form><table>";
 
-   // Command Line Interface
-   HTMLPage += "<font size=\"4\"><label for=\"commands\">Command line:</label><br>";
-   HTMLPage += "<input type=\"text\" id=\"commands\" name=\"commands\" value=\"\" style=\"width:30%\"><br><br>";
-   HTMLPage += "<input type=\"checkbox\" id=\"choice1\" name=\"repeat\" value=\"\">";
-   HTMLPage += "<label for=\"choice1\">Repeat</label><br></font>";
-
-   // add the submit button
-   HTMLPage += "<font size=\"1\"><br><input type=\"submit\" value=\"Submit\" /></form><br>";
-   HTMLPage += "<p>If you click the \"Submit\" button, the form-data will be sent to the satellite to take actions.<br>";
-   HTMLPage += "Data in \"Command line\" will be trasmitted as <b>/action_page.php?commands=</b></p></font><table>";
-   
-   // show status of each configuration value 
+   // for each configuration value
    for (int c = 0; c < CountOfConfigValues; c++) {
     // set background color by the status of the configuration value
     String StyleHTML = "";
@@ -165,10 +169,12 @@ String EncodeFormHTMLFromConfigValues(String TitleOfForm, int CountOfConfigValue
     // add the table row HTML code to the page
     HTMLPage += TableRowHTML;
    }
-    HTMLPage += "<font size=\"1\"></table><p>Jede Tabellenzeile zeigt den Status des Befehles an. <br>Green = Befehl wurde ausgeführt <br>Yellow = Keinen Befehl erhalten <br>Red = Befehl wurde falsch eingegben</p></font>";
 
-   // footer with information of the webpage
-   HTMLPage += "</body></html>";
+   // add the submit button
+   HTMLPage += "</table><br/><input type=\"submit\" value=\"Submit\" />";
+
+   // footer of the webpage
+   HTMLPage += "</form></body></html>";
    
    return HTMLPage;
 }
@@ -204,23 +210,7 @@ int DecodeGETParameterAndSetConfigValues(String GETParameter) {
    return count;  // number of values found in GET parameter
 }
 
-// check the ConfigValues and set ConfigStatus
-// process the ConfigValues to switch something
 
-void ProcessAndValidateConfigValues(int countValues) {
-  if (countValues > 8) {countValues = 8;};
-
-  // for each ConfigValue
-  for (int cn = 0; cn < countValues; cn++) {
-    // in our application the values must be "00" or "FF" (as text string)
-    if ((ConfigValue[cn].equals("00")) || (ConfigValue[cn].equals("FF"))) {
-      ConfigStatus[cn] = 1;    // Value is valid
-    }
-    else {
-      ConfigStatus[cn] = -1;   // Value is not valid
-    }
-  }
-}
 
 
 
@@ -232,7 +222,7 @@ void ConnectToWiFi() {
   Serial.print(txtSSID);
   WiFi.disconnect();
   WiFi.begin(txtSSID, txtPassword);
-  //WiFi.config(local_IP, dns, gateway); 
+  WiFi.config(local_IP, dns, gateway); //(doesnt work, probably ip out of range of router)
 
   
   // we wait until connection is established or 10 seconds are gone
@@ -258,13 +248,40 @@ void ConnectToWiFi() {
 
 
 
+String SerialPeriphalInterface(String DataToSend[]){
+  String receivedData="";
+  
+  SPI.beginTransaction(SPISettings);
+
+  // delay (5000);  // 5 seconds delay to start logic analyser.
+  
+  digitalWrite(SS, LOW);    // enable Slave Select
+  
+  //send string
+  for(cn1 = 1; cn1 == 8; cn1++){  //for all strings in array "DataToSend"; max 8 strings
+    for (int cn2 = 1; cn2 == DataToSend[cn1].length(); cn2++){  //send every letter one by one
+      receivedData=SPI.transfer(DataToSend[cn1][cn2]);
+    }
+  }
+  
+  delay(100);  //wait one sec for slave to send all data
+  
+  digitalWrite(SS, HIGH);  // disable Slave Select
+  
+  SPI.endTransaction();   //// turn SPI hardware off
+  
+  return receivedData;
+}
+
 
 
 void setup() {
   // Open serial communications and wait for port to open:
   Serial.begin(115200);
   Serial.println("ESP32 awake"); 
-  
+
+  SPI.begin (SCLK, MISO, MOSI, SS);
+
   // connect to WiFi network
   ConnectToWiFi();
   
@@ -278,13 +295,30 @@ void setup() {
   Webserver_Start();
 }
 
+// check the ConfigValues and set ConfigStatus
+// process the ConfigValues to switch something
+void ProcessAndValidateConfigValues(int countValues) {
+  if (countValues > 8) {countValues = 8;};
+
+  // for each ConfigValue
+  for (int cn = 0; cn < countValues; cn++) {
+    // in our application the values must be "00" or "FF" (as text string)
+    if ((ConfigValue[cn].equals("00")) || (ConfigValue[cn].equals("FF"))) {
+      ConfigStatus[cn] = 1;    // Value is valid
+    }
+    else {
+      ConfigStatus[cn] = -1;   // Value is not valid
+    }
+  }
+}
+
 int timer = 0;
 
 void loop() {
 
   String GETParameter = Webserver_GetRequestGETParameter();   // look for client request
   int countValues = 0;
-  Serial.println(GETParameter);
+  
   if (GETParameter.length() > 0) {     // we got a request, client connection stays open
   
     if (GETParameter.length() > 1) {    // request contains some GET parameter
@@ -299,6 +333,15 @@ void loop() {
     Webserver_SendHTMLPage(HTMLPageWithConfigForm);    // send out the webpage to client = webbrowser and close client connection
   }
 
+
+  // function has to save returned data in a variable (has to be implemented)
+  if (GETParameter.length() > 1){
+    SerialPeriphalInterface(ConfigValue[]);    
+  }
+
+  // receivedData have to be processed
+
+
   if (timer>50) {
   timer = 0;
     if (WiFi.status() != WL_CONNECTED) {
@@ -308,6 +351,11 @@ void loop() {
   } else {
     timer++;
   }
-
-  delay(500);
+  
+  Serial.print("ConfigValue[0]: ");
+  Serial.println(ConfigValue[0]);
+  Serial.print("GETParameter: ");
+  Serial.println(GETParameter);
+  
+  delay(5000);
 }
