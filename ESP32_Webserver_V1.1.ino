@@ -9,9 +9,9 @@ WiFiServer server(80);
 
 // SSID and Password of your Wifi network
 const char* txtSSID = "Test";
-const char* txtPassword = "12345678";
+const char* txtPassword = "123456789";
 
-IPAddress local_IP (192, 168, 1, 100); // Set your Static IP address
+IPAddress local_IP (192, 168, 1, 150); // Set your Static IP address
 IPAddress gateway (192, 168, 1, 9); // Set your Gateway IP address
 IPAddress dns (8, 8, 8, 8);
 IPAddress subnet (255, 255, 255, 0);
@@ -239,7 +239,7 @@ void ConnectToWiFi() {
   Serial.print(txtSSID);
   WiFi.disconnect();
   WiFi.begin(txtSSID, txtPassword);
-  //WiFi.config(local_IP, dns, gateway); 
+  WiFi.config(local_IP, dns, gateway); 
 
   
   // we wait until connection is established or 10 seconds are gone
@@ -273,10 +273,10 @@ String SerialPeriphalInterface(String DataToSend[]){
   // delay (5000);  // 5 seconds delay to start logic analyser.
   
   digitalWrite(SS, LOW);    // enable Slave Select
-  
+
   //send string
-  for(cn1 = 1; cn1 == 8; cn1++){  //for all strings in array "DataToSend"; max 8 strings
-    for (int cn2 = 1; cn2 == DataToSend[cn1].length(); cn2++){  //send every letter one by one
+  for(int cn1 = 0; cn1 < 8; cn1++){  //for all strings in array "DataToSend"; max 8 strings
+    for (int cn2 = 0; cn2 < DataToSend[cn1].length(); cn2++){  //send every letter one by one
       receivedData=SPI.transfer(DataToSend[cn1][cn2]);
     }
   }
@@ -336,11 +336,10 @@ void loop() {
 
   // function has to save returned data in a variable (has to be implemented)
   if (GETParameter.length() > 1){
-    SerialPeriphalInterface(ConfigValue[]);    
+    SerialPeriphalInterface(ConfigValue);    
   }
 
   // receivedData have to be processed
-
 
   if (timer>50) {
   timer = 0;
