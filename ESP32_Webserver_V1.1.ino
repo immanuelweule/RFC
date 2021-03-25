@@ -279,6 +279,7 @@ String SerialPeriphalInterface(String DataToSend[]){
     for (int cn2 = 0; cn2 < DataToSend[cn1].length(); cn2++){  //send every letter one by one
       receivedData=SPI.transfer(DataToSend[cn1][cn2]);
     }
+    ConfigStatus[cn1] = SPI.transfer();
   }
   
   delay(100);  //wait one sec for slave to send all data
@@ -323,12 +324,12 @@ void loop() {
   
     if (GETParameter.length() > 1) {    // request contains some GET parameter
       int countValues = DecodeGETParameterAndSetConfigValues(GETParameter);     // decode the GET parameter and set ConfigValues
-      ProcessAndValidateConfigValues(countValues);                              // check and process ConfigValues
+      SerialPeriphalInterface(ConfigValue);                                     // function returns status of send data in an array
+      //ProcessAndValidateConfigValues(countValues);                              // check and process ConfigValues
     } else {
       int countValues = 1;
     }
-    // function returns status of send data in an array
-    ConfigStatus[] = SerialPeriphalInterface(ConfigValue);
+    
     String HTMLPageWithConfigForm = EncodeFormHTMLFromConfigValues("ESP32 Webserver Demo", countValues);   // build a new webpage with form and new ConfigValues entered in textboxes
    
     Webserver_SendHTMLPage(HTMLPageWithConfigForm);    // send out the webpage to client = webbrowser and close client connection
