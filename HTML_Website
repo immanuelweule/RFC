@@ -1,25 +1,206 @@
 <!DOCTYPE html>
 <html>
+<head><meta name="viewport" content="width=device-width, initial-scale=1">
+<style> html {font-family: Arial;display: inline-block;margin: 0px auto;text-align: center;}h2 { font-size: 3.0rem; }
+{ font-size: 3.0rem; }.units { font-size: 1.2rem; }.dht-labels{font-size: 1.5rem;vertical-align:middle;padding-bottom: 15px;}
+table, th, td {
+  border: 2px solid black;
+  border-collapse: collapse;
+}
+table {
+  border-spacing: 50px;
+  margin-left:auto;margin-right:auto;
+}
+
+</style>
+</head>
+
 <body>
-
-<h2>ESP32 Comunication</h2>
-
+<h2>Satellite Ground Control</h2>
 <form action="/action_page.php" target="_blank" method="get">
-  <label for="commands">Command line:</label><br>
-  <input type="text" id="commands" name="commands" value="sample"><br><br>
-  <input type="checkbox" id="choice1" name="gender" value="female">
-  <label for="choice1">Repeat</label><br><br>
-  <input type="submit" value="Submit">
-</form> 
+<input type="submit"value="Send" style="float: right; width: 20%; margin-right: 10%" />
+<div style="overflow: hidden; padding-right: .5em;">
+	<label for="commands">Commandline: </label>
+   <input type="text" style="width: 70%;" name='commands'/>
+</div>
+</form>
+<p>Data in "Command line" will be trasmitted as <b>IP_Adresse/action_page.php?commands=</b></p>
 
-<p>If you click the "Submit" button, the form-data will be sent to the satellite to take actions.<br>
-Daten in "Command line" werden übermittelt als <b>/action_page.php?commands=sample</b></p>
+<p>Sensordaten vom Thermistor (Test): <span id="ADCValue">0</span></p></font>
+<h3><u>Sonsor data</u></h3>
+<p align='center'>
+<table style="width:90%">
+<colgroup>
+       <col span="1" style="width: 20%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+</colgroup>
+  <tr style="background-color: #aaa">
+    <th></th>
+    <th>ComEn line</th> 
+    <th>PS line</th>
+    <th>SR</th>
+    <th>AI</th>
+    <th>SPI</th>
+    <th>I2C</th>
+    <th>Einheit</th>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">EPM</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">ODC</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">TMS1</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">TMS2</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">Payload</td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+</p>
+<br>
+<h3><u>Initilization</u></h3>
+<p align='center'>
+<table style="width:90%">
+<colgroup>
+       <col span="1" style="width: 20%;">
+       <col span="1" style="width: 15%;">
+       <col span="1" style="width: 15%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+       <col span="1" style="width: 10%;">
+</colgroup>
+  <tr style="background-color: #aaa">
+    <th></th>
+    <th>ComEn line</th> 
+    <th>PS line</th>
+    <th>SR</th>
+    <th>AI</th>
+    <th>SPI</th>
+    <th>I2C</th>
+    <th>Einheit</th>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">EPM</td>
+    <td><input type="text" id="epm" name="epm" style="width:90%"></td>
+    <td><input type="text" id="epm" name="epm" style="width:90%"></td>
+    <td><input type="radio" id="epm" name="epm" value="0"></td>
+    <td><input type="radio" id="epm" name="epm" value="0"></td>
+    <td><input type="radio" id="epm" name="epm" value="0"></td>
+    <td><input type="radio" id="epm" name="epm" value="0"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">ODC</td>
+    <td><input type="text" id="odc" name="odc" style="width:90%"></td>
+    <td><input type="text" id="odc" name="odc" style="width:90%"></td>
+    <td><input type="radio" id="odc" name="odc" value="0"></td>
+    <td><input type="radio" id="odc" name="odc" value="0"></td>
+    <td><input type="radio" id="odc" name="odc" value="0"></td>
+    <td><input type="radio" id="odc" name="odc" value="0"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">TMS1</td>
+    <td><input type="text" id="tms1" name="tms1" style="width:90%"></td>
+    <td><input type="text" id="tms1" name="tms1" style="width:90%"></td>
+    <td><input type="radio" id="tms1" name="tms1" value="0"></td>
+    <td><input type="radio" id="tms1" name="tms1" value="0"></td>
+    <td><input type="radio" id="tms1" name="tms1" value="0"></td>
+    <td><input type="radio" id="tms1" name="tms1" value="0"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">TMS2</td>
+    <td><input type="text" id="tms2" name="tms2" style="width:90%"></td>
+    <td><input type="text" id="tms2" name="tms2" style="width:90%"></td>
+    <td><input type="radio" id="tms2" name="tms2" value="0"></td>
+    <td><input type="radio" id="tms2" name="tms2" value="0"></td>
+    <td><input type="radio" id="tms2" name="tms2" value="0"></td>
+    <td><input type="radio" id="tms2" name="tms2" value="0"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td style="background-color: #aaa">Payload</td>
+    <td><input type="text" id="pay" name="payload" style="width:90%"></td>
+    <td><input type="text" id="pay" name="payload" style="width:90%"></td>
+    <td><input type="radio" id="pay" name="payload" value="0"></td>
+    <td><input type="radio" id="pay" name="payload" value="0"></td>
+    <td><input type="radio" id="pay" name="payload" value="0"></td>
+    <td><input type="radio" id="pay" name="payload" value="0"></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td colspan="7"</td>
+    <td ><input type=submit value="Send Config" style="width:100%"></td>
+  </tr>
+</form>
+</table>
+</p>
 
+<script>
+setInterval(function() {
+  // Call a function repetatively with 2 Second interval
+  getData();
+}, 2000); //2000 msec update rate
+
+function getData() {
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.getElementById("ADCValue").innerHTML =
+      this.responseText;
+    }
+  };
+  xhttp.open("GET", "readADC", true);
+  xhttp.send();
+}
+</script>
 </body>
 </html>
-
-
-
-
-
-https://www.w3schools.com/html/tryit.asp?filename=tryhtml_form_submit
