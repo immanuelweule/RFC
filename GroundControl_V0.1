@@ -1,19 +1,19 @@
 //===============================================================
 // @file:     GroundControl_V0.1
-// @bief:     Communication CubeSat - Ground Control
+// @brief:    Communication CubeSat - Ground Control
 //
 // @authors:  Adrian Setka, Immanuel Weule
 //
 // @hardware: ESP32-DevKitC V4 (ESP32-WROOM-32U)
 // @comments: Can only connect to 2,4 GHz, not to 5 GHz
 //
-// @date:     2021-05-15
+// @date:     2021-05-29
 //===============================================================
 
 
 
 //===============================================================
-// Header files and WiFi setup
+// Header files, variable declarations and WiFi setup
 //===============================================================
 
 #include <WiFi.h>
@@ -21,17 +21,19 @@
 #include <WebServer.h>
 #include "index.h"  //Web page header file
 
+int counter=0;  //counter for checking connection status in loop
+
 WebServer server(80);  //Setup a HTTP server
 
 //Set WiFi SSID and password
-const char* ssid = "Test"; //WiFi SSID
-const char* password = "12345678"; //WiFi password
+const char* ssid = "WiFiSSID"; //WiFi SSID
+const char* password = "WiFipassword"; //WiFi password
 
 //Set static IP adress for ESP
 IPAddress staticIP(192, 168, 1, 150); //Last value has to be changed to desired value (has to be unused)
-IPAddress gateway(192, 168, 1, 254); //To figure out the correct values for gateway, subnet and dns, run "find_network_parameters.ino" on ESP
+IPAddress gateway(192, 168, 1, 1); //To figure out the correct values for gateway, subnet and dns, run "find_network_parameters.ino" on ESP
 IPAddress subnet(255, 255, 255, 0);
-IPAddress dns(192, 168, 1, 254);
+IPAddress dns(192, 168, 1, 1);
 
 const int Analog_channel_pin = 34;  //Analog Channel Pin
 
@@ -102,6 +104,7 @@ void setup(void){
  
   server.begin(); //Start server
   Serial.println("HTTP server started.");
+
 }
 
 
@@ -114,7 +117,7 @@ void loop(void){
   server.handleClient();
   
   //Check if ESP is still connected to WiFi and reconnect if connection was lost
-  if (counter>100) { //Dont check connection status in every loop (for better runtime)
+  if(counter>100) { //Dont check connection status in every loop (for better runtime)
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi not connected. Try to reconnect...");
       ConnectToWiFi();
