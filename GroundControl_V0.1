@@ -19,6 +19,7 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WebServer.h>
+#include <ESPmDNS.h>
 #include "index.h"  //Web page header file
 
 int counter=0;  //counter for checking connection status in loop
@@ -26,14 +27,8 @@ int counter=0;  //counter for checking connection status in loop
 WebServer server(80);  //Setup a HTTP server
 
 //Set WiFi SSID and password
-const char* ssid = "WiFiSSID"; //WiFi SSID
-const char* password = "WiFipassword"; //WiFi password
-
-//Set static IP adress for ESP
-IPAddress staticIP(192, 168, 1, 150); //Last value has to be changed to desired value (has to be unused)
-IPAddress gateway(192, 168, 1, 1); //To figure out the correct values for gateway, subnet and dns, run "find_network_parameters.ino" on ESP
-IPAddress subnet(255, 255, 255, 0);
-IPAddress dns(192, 168, 1, 1);
+const char* ssid = "Kewwin_02"; //WiFi SSID
+const char* password = "2214934027604276"; //WiFi password
 
 const int Analog_channel_pin = 34;  //Analog Channel Pin
 
@@ -87,24 +82,23 @@ void ConnectToWiFi() {
 void setup(void){
   Serial.begin(115200); //Open a serial connection
   Serial.println("Booting Sketch...");
-  
-  //Setup the previously defined network parameters to get a static IP adress
-  if (WiFi.config(staticIP, gateway, subnet, dns, dns) == false) {
-    Serial.println("Configuration failed.");
-  }
 
   //Initialize how ESP should act - AP or STA (comment out one initialization)
   //WiFi.mode(WIFI_AP); //Access point mode: stations can connect to the ESP
   WiFi.mode(WIFI_STA); //Station mode: the ESP connects to an access point
 
   ConnectToWiFi();
- 
+  
+  if(!MDNS.begin("cubesat")) {
+     Serial.println("Error starting mDNS");
+     return;
+  }
+  
   server.on("/", handleRoot); //This is display page
   server.on("/readADC", handleADC); //To get update of ADC Value only
- 
+  
   server.begin(); //Start server
   Serial.println("HTTP server started.");
-
 }
 
 
