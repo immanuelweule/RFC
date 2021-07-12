@@ -1,5 +1,5 @@
 //===============================================================
-// @file:     GroundControl_V0.3
+// @file:     GroundControl_V0.1
 // @brief:    Communication CubeSat - Ground Control
 //
 // @authors:  Adrian Setka, Immanuel Weule
@@ -7,7 +7,12 @@
 // @hardware: ESP32-DevKitC V4 (ESP32-WROOM-32U)
 // @comments: Can only connect to 2,4 GHz, not to 5 GHz
 //
-// @date:     2021-07-03
+// @date:     2021-07-12
+//
+// @links:    https://randomnerdtutorials.com/esp32-esp8266-plot-chart-web-server/
+//            https://randomnerdtutorials.com/esp32-mpu-6050-web-server/
+//            https://randomnerdtutorials.com/esp32-async-web-server-espasyncwebserver-library/
+//            https://randomnerdtutorials.com/esp32-esp8266-input-data-html-form/
 //===============================================================
 
 
@@ -20,30 +25,37 @@
 
 #include <WiFi.h>
 #include <AsyncTCP.h>
-#include <SPIFFS.h>
+#include <SPIFFS.h> //File system
 
 #include <ESPAsyncWebServer.h>
-#include <ESPmDNS.h>  // for URL/name instead of IP address
+#include <ESPmDNS.h>  //For URL/name instead of IP address
 #include <analogWrite.h>
 
-#include "index.h"  // web page header file
-
-int counter = 0; // counter for checking connection status in loop
-
-AsyncWebServer server(80);  // setup a HTTP server
-
 //Set WiFi SSID and password
-const char* ssid = "Kewwin_02"; // WiFi SSID
-const char* password = "2214934027604276"; // WiFi password
-
-const char* PARAM_COMMAND = "inCommand"; // variable for commandline
-const char* PARAM_INIT = "inInit"; // variable for initilization
-
-const int Analog_Pin = 34;  // analog Channel Pin for Website send test
-const int LED_Pin = 27; // test LED Pin for Website Receiver test
+const char* ssid = "Kewwin_02"; //WiFi SSID
+const char* password = "2214934027604276"; //WiFi password
+//const char* ssid = "Apartment 322"; //WiFi SSID
+//const char* password = "06456469822825645048"; //WiFi password
 
 const char* http_username = "admin";  // username for login
 const char* http_password = "admin";  // password for login
+
+const char* PARAM_COMMAND = "inCommand"; //Variable for commandline
+const char* PARAM_INIT = "inInit"; //Variable for initilization
+
+int counter=0;  //Counter for checking connection status in loop
+
+AsyncWebServer server(80);  //Setup a HTTP server
+
+
+
+//Just for test purposes of sensormonitoring
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP280.h>
+Adafruit_BMP280 bmp; //I2C sensor connection of BMP280 modul
+
+
 
 //===============================================================
 // Function declarations
@@ -51,22 +63,23 @@ const char* http_password = "admin";  // password for login
 
 void ConnectToWiFi() {
   Serial.println("Connecting to ");
-  Serial.print(ssid); // print IP adress of ESP on console
+  Serial.print(ssid);
   
   WiFi.disconnect();
-  WiFi.begin(ssid, password); // for ESP as a station; for ESP as a AP use "WiFi.softAP(ssid, password)"
+  WiFi.begin(ssid, password); //For ESP as a station; for ESP as AP use "WiFi.softAP(ssid, password)"
 
-  // wait for WiFi to connect
+  //Wait for WiFi to connect
   while(WiFi.waitForConnectResult() != WL_CONNECTED){      
       Serial.print(".");
+      delay(100);
   }
     
-  // if connection is successful show IP address in serial monitor
+  //If connection is successful show IP address in serial monitor
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
   Serial.print("IP address: ");
-  Serial.println(WiFi.localIP()); // IP address assigned to your ESP
+  Serial.println(WiFi.localIP()); //IP address assigned to your ESP
 
   return;
 }
@@ -107,6 +120,7 @@ void writeFile(fs::FS &fs, const char * path, const char * message){
   file.close();
 }
 
+//Replaces placeholder with stored values
 String processor(const String& var){
   //Serial.println(var);
   if(var == "inCommand"){
@@ -115,25 +129,68 @@ String processor(const String& var){
   else if(var == "inInit"){
     return readFile(SPIFFS, "/inInit.txt");
   }
-  else if(var == "inTest"){
-    return readFile(SPIFFS, "/inTest.txt");
-  }
   return String();
 }
+
+
 
 //===============================================================
 // Test Functions
 //===============================================================
 
-void TestReceiver() {
-  String s;
-  if( s == "rightCommand") {
-    analogWrite(LED_Pin, 255);
-    delay(5000);
-    analogWrite(LED_Pin, LOW);
+
+String readBMP280Temperature() {
+  // Read temperature as Celsius (the default)
+  float t = bmp.readTemperature();
+  // Convert temperature to Fahrenheit
+  //t = 1.8 * t + 32;
+  if (isnan(t)) {    
+    Serial.println("Failed to read from BMP280 sensor!");
+    return "";
   }
-  return;
+  else {
+    Serial.println(t);
+    return String(t);
+  }
 }
+
+String readBMP280Altitude() {
+  float h = bmp.readAltitude(1013.25);
+  if (isnan(h)) {
+    Serial.println("Failed to read from BMP280 sensor!");
+    return "";
+  }
+  else {
+    Serial.println(h);
+    return String(h);
+  }
+}
+
+String readBMP280Pressure() {
+  float p = bmp.readPressure() / 100.0F;
+  if (isnan(p)) {
+    Serial.println("Failed to read from BMP280 sensor!");
+    return "";
+  }
+  else {
+    Serial.println(p);
+    return String(p);
+  }
+}
+
+/* String readPhoto() {
+  float ph = analogRead(Analog_Pin);
+  if (isnan(ph)) {
+    Serial.println("Failed to read from analog sensor!");
+    return "";
+  }
+  else {
+    Serial.println(ph);
+    return String(ph);
+  }
+} */
+
+
 
 //===============================================================
 // Setup
@@ -141,43 +198,73 @@ void TestReceiver() {
 
 void setup(void){
   
-  Serial.begin(115200); // open a serial connection
+  Serial.begin(115200); //Open a serial connection
   Serial.println("Booting...");
 
-  // initialize SPIFFS
+  if (!bmp.begin(0x76)) {
+    Serial.println("Could not find a valid BME280 sensor, check wiring!");
+    //while (1) delay(10);
+  }
+  
+  //Initialize SPIFFS
   if(!SPIFFS.begin(true)){
     Serial.println("An Error has occurred while mounting SPIFFS");
     return;
   }
 
-  // initialize how ESP should act - AP or STA (comment out one initialization)
-  //WiFi.mode(WIFI_AP); // access point mode: stations can connect to the ESP
-  WiFi.mode(WIFI_STA); // station mode: the ESP connects to an access point
+  //Initialize how ESP should act - AP or STA (comment out one initialization)
+  //WiFi.mode(WIFI_AP); //Access point mode: stations can connect to the ESP
+  WiFi.mode(WIFI_STA); //Station mode: the ESP connects to an access point
 
   ConnectToWiFi();
 
-  if(!MDNS.begin("cubesat")) {  // argument of MDNS.begin holds website name (".local" has to be added)
+  if(!MDNS.begin("cubesat")) {  //Argument of MDNS.begin holds website name (".local" has to be added)
      Serial.println("Error starting mDNS");
      return;
   }
-  // route for root / web page
+  
+  //Handle Web Server
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
     if(!request->authenticate(http_username, http_password))
       return request->requestAuthentication();
-    request->send_P(200, "text/html", index_html, processor);
+    request->send(SPIFFS, "/index.html", String(), false, processor);
   });
   
-  // send a GET request to <ESP_IP>/get?inputString=<inputMessage>
+  server.on("/temperature", HTTP_GET, [](AsyncWebServerRequest *request){
+    if(!request->authenticate(http_username, http_password))
+      return request->requestAuthentication();
+    request->send_P(200, "text/plain", readBMP280Temperature().c_str());
+  });
+  server.on("/altitude", HTTP_GET, [](AsyncWebServerRequest *request){
+    if(!request->authenticate(http_username, http_password))
+      return request->requestAuthentication();
+    request->send_P(200, "text/plain", readBMP280Altitude().c_str());
+  });
+  server.on("/pressure", HTTP_GET, [](AsyncWebServerRequest *request){
+    if(!request->authenticate(http_username, http_password))
+      return request->requestAuthentication();
+    request->send_P(200, "text/plain", readBMP280Pressure().c_str());
+  });
+  server.on("/command", HTTP_GET, [](AsyncWebServerRequest *request){
+    if(!request->authenticate(http_username, http_password))
+      return request->requestAuthentication();
+    request->send(SPIFFS, "/inCommand.txt", "text/plain");
+  });
+  /* server.on("/photo", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send_P(200, "text/plain", readPhoto().c_str());
+  }); */
+  
+  //Send a GET request to <ESP_IP>/get?inputString=<inputMessage>
   server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
     if(!request->authenticate(http_username, http_password))
       return request->requestAuthentication();
     String inputMessage;
-    // GET inputString value on <ESP_IP>/get?inputString=<inputMessage>
+    // GET inCommand value on <ESP_IP>/get?inCommand=<inputMessage>
     if (request->hasParam(PARAM_COMMAND)) {
       inputMessage = request->getParam(PARAM_COMMAND)->value();
       writeFile(SPIFFS, "/inCommand.txt", inputMessage.c_str());
     }
-    // GET inputInt value on <ESP_IP>/get?inputInt=<inputMessage>
+    //GET inInt value on <ESP_IP>/get?inpInt=<inputMessage>
     else if (request->hasParam(PARAM_INIT)) {
       inputMessage = request->getParam(PARAM_INIT)->value();
       writeFile(SPIFFS, "/inInit.txt", inputMessage.c_str());
@@ -189,19 +276,20 @@ void setup(void){
     request->send(200, "text/text", inputMessage);
   });
 
-  // to get update of ADC Value only
+  /*To get update of ADC Value only
   server.on("/readADC", [] (AsyncWebServerRequest *request) {
-     if(!request->authenticate(http_username, http_password))
+    if(!request->authenticate(http_username, http_password))
       return request->requestAuthentication();
-     int a = analogRead(Analog_Pin);
-     String adcValue = String(a);
-     writeFile(SPIFFS, "/inInit.txt", adcValue.c_str());
-     request->send(200, "text/plane", adcValue);
-  });
+    int a = analogRead(Analog_Pin);
+    String adcValue = String(a);
+    request->send(200, "text/plane", adcValue);
+  }); */
+  
   
   server.onNotFound(notFound);
   server.begin();
 }
+
 
 
 //===============================================================
@@ -210,8 +298,8 @@ void setup(void){
 
 void loop(void){
 
-  // check if ESP is still connected to WiFi and reconnect if connection was lost
-  if(counter>6) { // dont check connection status in every loop (for better runtime)
+  //Check if ESP is still connected to WiFi and reconnect if connection was lost
+  if(counter>6) { //Dont check connection status in every loop (for better runtime)
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi not connected. Try to reconnect...");
       ConnectToWiFi();
@@ -221,6 +309,11 @@ void loop(void){
     counter++;
   }
   
+  //To access your stored values on inCommand, inInit
+  readFile(SPIFFS, "/inCommand.txt");
+  readFile(SPIFFS, "/inInit.txt");
+
+/*
   // to access your stored values on inCommand, inInit
   String yourInputCommand = readFile(SPIFFS, "/inCommand.txt");
   Serial.print("*** Your inputCommand: ");
@@ -229,6 +322,7 @@ void loop(void){
   String yourInputInit = readFile(SPIFFS, "/inInit.txt");
   Serial.print("*** Your inputInit: ");
   Serial.println(yourInputInit);
-  
-  delay(5000);
+*/
+
+  delay(10000);
 }
